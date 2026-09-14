@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+## 0.2.6 - 2026-09-14
+
 ### Fixed
 
+- MiniMax now reads percentage-based coding quotas when the provider returns
+  zero quota counts, and uses the general coding quota instead of video.
 - The menu-bar dropdown stays within the available screen height and scrolls
   long account lists, keeping the bottom entries and toolbar accessible.
 
