@@ -22,7 +22,9 @@ public struct MiniMaxUsageDecoder: Sendable {
             throw ProviderClientError.unsupportedResponse
         }
 
-        let candidates = response.modelRemains.compactMap {
+        let generalRows = response.modelRemains.filter { $0.modelName == "general" }
+        let rows = generalRows.isEmpty ? response.modelRemains : generalRows
+        let candidates = rows.compactMap {
             Candidate(row: $0)
         }
         guard
@@ -89,12 +91,14 @@ private extension MiniMaxUsageDecoder {
             interval = Quota(
                 total: row.currentIntervalTotalCount,
                 remaining: row.currentIntervalUsageCount,
+                remainingPercent: row.currentIntervalRemainingPercent,
                 startsAtMilliseconds: row.startTime,
                 endsAtMilliseconds: row.endTime
             )
             weekly = Quota(
                 total: row.currentWeeklyTotalCount,
                 remaining: row.currentWeeklyUsageCount,
+                remainingPercent: row.currentWeeklyRemainingPercent,
                 startsAtMilliseconds: row.weeklyStartTime,
                 endsAtMilliseconds: row.weeklyEndTime
             )
@@ -141,15 +145,11 @@ private extension MiniMaxUsageDecoder {
         init?(
             total: Double?,
             remaining: Double?,
+            remainingPercent: Double?,
             startsAtMilliseconds: Double?,
             endsAtMilliseconds: Double?
         ) {
             guard
-                let total,
-                total.isFinite,
-                total > 0,
-                let remaining,
-                remaining.isFinite,
                 let endsAtMilliseconds,
                 endsAtMilliseconds.isFinite,
                 endsAtMilliseconds > 0
@@ -157,10 +157,17 @@ private extension MiniMaxUsageDecoder {
                 return nil
             }
 
-            let clampedRemaining = min(max(remaining, 0), total)
-            self.total = total
-            consumedFraction =
-                (total - clampedRemaining) / total
+            if let remainingPercent, remainingPercent.isFinite {
+                self.total = total.flatMap { $0.isFinite && $0 > 0 ? $0 : nil } ?? 0
+                consumedFraction = (100 - min(max(remainingPercent, 0), 100)) / 100
+            } else if let total, total.isFinite, total > 0,
+                let remaining, remaining.isFinite
+            {
+                self.total = total
+                consumedFraction = (total - min(max(remaining, 0), total)) / total
+            } else {
+                return nil
+            }
             endsAt = Date(
                 timeIntervalSince1970:
                     endsAtMilliseconds / 1_000
@@ -212,6 +219,8 @@ private struct MiniMaxUsageResponse: Decodable {
         let endTime: Double?
         let currentIntervalTotalCount: Double?
         let currentIntervalUsageCount: Double?
+        let currentIntervalRemainingPercent: Double?
+        let currentWeeklyRemainingPercent: Double?
         let modelName: String
         let currentWeeklyTotalCount: Double?
         let currentWeeklyUsageCount: Double?
@@ -225,6 +234,8 @@ private struct MiniMaxUsageResponse: Decodable {
                 "current_interval_total_count"
             case currentIntervalUsageCount =
                 "current_interval_usage_count"
+            case currentIntervalRemainingPercent = "current_interval_remaining_percent"
+            case currentWeeklyRemainingPercent = "current_weekly_remaining_percent"
             case modelName = "model_name"
             case currentWeeklyTotalCount =
                 "current_weekly_total_count"
@@ -252,6 +263,12 @@ private struct MiniMaxUsageResponse: Decodable {
                 container.flexibleDouble(
                     forKey: .currentIntervalUsageCount
                 )
+            currentIntervalRemainingPercent = container.flexibleDouble(
+                forKey: .currentIntervalRemainingPercent
+            )
+            currentWeeklyRemainingPercent = container.flexibleDouble(
+                forKey: .currentWeeklyRemainingPercent
+            )
             modelName =
                 try container.decodeIfPresent(
                     String.self,

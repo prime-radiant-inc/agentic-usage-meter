@@ -5,6 +5,68 @@ import Testing
 
 @Suite
 struct MiniMaxUsageDecoderTests {
+    @Test(arguments: [0.0, 25.5, 100.0, 150.0, -10.0])
+    func percentagesTakePrecedenceAndAreClamped(remaining: Double) throws {
+        let data = Data(
+            """
+            {
+              "model_remains": [{
+                "model_name": "general",
+                "end_time": 1789416000000,
+                "current_interval_total_count": 100,
+                "current_interval_usage_count": 90,
+                "current_interval_remaining_percent": \(remaining)
+              }],
+              "base_resp": {"status_code": 0}
+            }
+            """.utf8
+        )
+        let snapshot = try MiniMaxUsageDecoder().decode(
+            data, accountID: UUID(), fetchedAt: Date()
+        )
+        #expect(snapshot.windows.count == 1)
+        #expect(snapshot.windows[0].consumedFraction == (100 - min(max(remaining, 0), 100)) / 100)
+    }
+
+    @Test
+    func percentageQuotasUseGeneralInsteadOfVideo() throws {
+        let data = Data(
+            """
+            {
+              "model_remains": [{
+                "model_name": "video",
+                "end_time": 1789430400000,
+                "current_interval_remaining_percent": 0,
+                "current_interval_total_count": 0,
+                "current_interval_usage_count": 0
+              }, {
+                "model_name": "general",
+                "start_time": 1789398000000,
+                "end_time": 1789416000000,
+                "current_interval_total_count": 0,
+                "current_interval_usage_count": 0,
+                "current_interval_remaining_percent": 75,
+                "weekly_start_time": 1789344000000,
+                "weekly_end_time": 1789948800000,
+                "current_weekly_total_count": 0,
+                "current_weekly_usage_count": 0,
+                "current_weekly_remaining_percent": "40"
+              }],
+              "base_resp": {"status_code": 0}
+            }
+            """.utf8
+        )
+
+        let snapshot = try MiniMaxUsageDecoder().decode(
+            data, accountID: UUID(), fetchedAt: Date()
+        )
+
+        #expect(snapshot.windows.map(\.kind) == [.short, .weekly])
+        #expect(snapshot.windows[0].consumedFraction == 0.25)
+        #expect(snapshot.windows[1].consumedFraction == 0.6)
+        #expect(snapshot.windows[0].resetAt == Date(timeIntervalSince1970: 1789416000))
+    }
+
     @Test
     func remainingCountsBecomeConsumedFractions() throws {
         let accountID = UUID()
