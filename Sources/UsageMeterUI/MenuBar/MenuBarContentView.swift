@@ -4,6 +4,7 @@ import SwiftUI
 public struct MenuBarContentView: View {
     private let model: AppModel
     private let updateController: AppUpdateController
+    @State private var maximumHeight = Self.availableHeight
     @Environment(\.openSettings) private var openSettings
 
     public init(
@@ -112,7 +113,19 @@ public struct MenuBarContentView: View {
             )
         }
         .frame(width: UsageTimelineMetrics.naturalWidth)
+        .frame(maxHeight: maximumHeight)
         .fixedSize(horizontal: false, vertical: true)
+        .onAppear {
+            maximumHeight = Self.availableHeight
+        }
+    }
+
+    private static var availableHeight: CGFloat {
+        let screen = NSScreen.screens.first {
+            $0.frame.contains(NSEvent.mouseLocation)
+        } ?? NSScreen.main
+        // Leave room for the menu panel's border and spacing below the menu bar.
+        return max(1, (screen?.visibleFrame.height ?? 600) - 16)
     }
 
     private func refreshAllAccounts() {

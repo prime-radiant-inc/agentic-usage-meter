@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Fixed
+
+- The menu-bar dropdown stays within the available screen height and scrolls
+  long account lists, keeping the bottom entries and toolbar accessible.
+
 ## 0.2.5 - 2026-08-13
 
 ### Added

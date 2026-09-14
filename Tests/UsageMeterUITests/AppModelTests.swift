@@ -921,6 +921,61 @@ struct AppModelTests {
     }
 
     @Test
+    func menuBarOverflowFitsTheScreenAndCanScrollToTheBottom() async throws {
+        let accounts = (0 ..< 100).map {
+            SubscriptionAccount(
+                provider: .claude,
+                displayName: "Account \($0)",
+                displayOrder: $0,
+            )
+        }
+        let window = try #require(UsageWindow(
+            id: "weekly", kind: .weekly, duration: 604_800,
+            resetAt: reference.addingTimeInterval(604_800),
+            consumedFraction: 0.2,
+        ))
+        let model = AppModel(
+            stateStore: TestAppStateStore(state: PersistedAppState(
+                accounts: accounts,
+                snapshots: Dictionary(uniqueKeysWithValues: accounts.map {
+                    ($0.id, UsageSnapshot(
+                        accountID: $0.id, fetchedAt: reference, windows: [window],
+                    ))
+                }),
+            )),
+            credentialStore: TestCredentialStore(),
+            adapters: [],
+            now: { reference },
+        )
+        await model.start()
+        let hostingView = NSHostingView(rootView: MenuBarContentView(model: model))
+        let screenHeight = try #require(NSScreen.screens.map(\.visibleFrame.height).max())
+        #expect(hostingView.fittingSize.height <= screenHeight)
+        let panel = NSPanel(
+            contentRect: NSRect(origin: .zero, size: hostingView.fittingSize),
+            styleMask: [.borderless], backing: .buffered, defer: false,
+        )
+        panel.contentView = hostingView
+        panel.orderFront(nil)
+        defer { panel.orderOut(nil) }
+        hostingView.layoutSubtreeIfNeeded()
+        try await Task.sleep(for: .milliseconds(100))
+        hostingView.layoutSubtreeIfNeeded()
+
+        func scrollView(in view: NSView) -> NSScrollView? {
+            if let scroll = view as? NSScrollView { return scroll }
+            return view.subviews.lazy.compactMap { scrollView(in: $0) }.first
+        }
+        let scroll = try #require(scrollView(in: hostingView))
+        let document = try #require(scroll.documentView)
+        #expect(document.bounds.height > scroll.contentSize.height)
+        let bottom = NSPoint(x: 0, y: document.bounds.maxY - scroll.contentSize.height)
+        scroll.contentView.scroll(to: bottom)
+        scroll.reflectScrolledClipView(scroll.contentView)
+        #expect(scroll.documentVisibleRect.maxY >= document.bounds.maxY - 1)
+    }
+
+    @Test
     func menuBarContentExpandsWhenAccountsFinishLoading() async throws {
         let model = AppModel(
             stateStore: TestAppStateStore(
