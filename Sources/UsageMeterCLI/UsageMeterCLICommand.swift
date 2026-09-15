@@ -32,7 +32,10 @@ enum UsageMeterCLICommand: Equatable {
       case "--state-file":
         guard
           stateFilePath == nil,
-          index + 1 < arguments.count
+          index + 1 < arguments.count,
+          // A "--"-prefixed value is a flag the user meant to pass, not a
+          // path; consuming it turns a typo into a confusing file error.
+          !arguments[index + 1].hasPrefix("--")
         else {
           throw UsageMeterCLICommandError.invalidArguments
         }

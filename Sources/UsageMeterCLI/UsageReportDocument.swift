@@ -87,7 +87,7 @@ struct UsageReportDocument: Codable, Equatable {
       kind = window.kind.rawValue
       label = window.label
       durationSeconds = Int(window.duration.rounded())
-      consumedPercent = Int((window.consumedFraction * 100).rounded())
+      consumedPercent = window.consumedPercent
       remainingFraction = window.remainingFraction
       resetAt = window.resetAt
     }

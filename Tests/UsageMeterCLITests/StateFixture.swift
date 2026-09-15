@@ -339,6 +339,40 @@ enum StateFixture {
     )
   }
 
+  /// One account that carries an authenticated identity and owns the only
+  /// window, so it is necessarily the tightest. The spec keeps the identity
+  /// out of `--tightest`; without this fixture no test could see it leak,
+  /// because the tightest window in every other fixture belongs to an
+  /// account whose identity is nil.
+  static func identifiedAccountIsTightestState() -> PersistedAppState {
+    PersistedAppState(
+      accounts: [
+        SubscriptionAccount(
+          id: claudeWorkID,
+          provider: .claude,
+          displayName: "Work",
+          authenticatedIdentity: "harper@example.com",
+          displayOrder: 0
+        )
+      ],
+      snapshots: [
+        claudeWorkID: UsageSnapshot(
+          accountID: claudeWorkID,
+          fetchedAt: referenceDate,
+          windows: [
+            UsageWindow(
+              id: "short",
+              kind: .short,
+              duration: 18_000,
+              resetAt: referenceDate.addingTimeInterval(8_040),
+              consumedFraction: 0.61
+            )!
+          ]
+        )
+      ]
+    )
+  }
+
   /// Encodes `state` to a uniquely named file under the temporary
   /// directory and returns its URL. Real JSON, real layout.
   static func write(

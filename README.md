@@ -107,6 +107,11 @@ report for scripts. `usage-meter --tightest` prints one line for the
 window with the least headroom, which suits a shell prompt or a status
 line.
 
+The table and `--tightest` print display names only. `--json` also
+includes each account's authenticated identity, which is usually an
+email address, so treat its output as you would the account list
+itself.
+
 The command exits 66 when the application has never written its state
 file and 65 when that file cannot be decoded, so a prompt can tell an
 unconfigured application from a broken one.

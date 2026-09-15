@@ -94,3 +94,12 @@ struct UsageReport: Equatable {
     )
   }
 }
+
+extension UsageWindow {
+  /// The one rounding rule for a consumed percentage, so the table, the
+  /// tightest line, and the JSON document can never round the same window
+  /// to different integers.
+  var consumedPercent: Int {
+    Int((consumedFraction * 100).rounded())
+  }
+}

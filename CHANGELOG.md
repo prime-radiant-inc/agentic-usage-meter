@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- The application bundle now ships a `usage-meter` command. It prints the
+  quota picture the application last fetched, as a table, as versioned JSON
+  for scripts, or as a single `--tightest` line suited to a shell prompt. It
+  reads the cached state file and makes no network requests, so it returns
+  immediately whether or not the application is running.
+
 ## 0.2.6 - 2026-09-14
 
 ### Fixed

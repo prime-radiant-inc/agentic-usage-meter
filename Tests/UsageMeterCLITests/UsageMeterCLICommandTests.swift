@@ -79,6 +79,15 @@ struct UsageMeterCLICommandTests {
   }
 
   @Test
+  func aStateFilePathThatIsActuallyAFlagIsARejectedArgument() {
+    #expect(throws: UsageMeterCLICommandError.invalidArguments) {
+      try UsageMeterCLICommand.parse(
+        arguments: ["usage-meter", "--state-file", "--json"]
+      )
+    }
+  }
+
+  @Test
   func rejectsUnknownFlagsAndStrayArguments() {
     #expect(throws: UsageMeterCLICommandError.invalidArguments) {
       try UsageMeterCLICommand.parse(

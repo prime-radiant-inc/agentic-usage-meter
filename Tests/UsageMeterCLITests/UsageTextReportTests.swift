@@ -75,7 +75,7 @@ struct UsageTextReportTests {
       UsageTextReport.tightestLine(
         UsageReport(state: StateFixture.populatedState()),
         now: now
-      ) == "Codex/Personal 78% · resets in 5d 1h"
+      ) == "Codex/Personal 78% used · resets in 5d 1h"
     )
   }
 
@@ -95,8 +95,19 @@ struct UsageTextReportTests {
       UsageTextReport.tightestLine(
         UsageReport(state: StateFixture.windowWithoutAResetState()),
         now: now
-      ) == "Claude/Work 0%"
+      ) == "Claude/Work 0% used"
     )
+  }
+
+  @Test
+  func tightestLineOmitsAnIdentityTheAccountActuallyHas() {
+    let line = UsageTextReport.tightestLine(
+      UsageReport(state: StateFixture.identifiedAccountIsTightestState()),
+      now: now
+    )
+
+    #expect(line == "Claude/Work 61% used · resets in 2h 14m")
+    #expect(!line.contains("harper@example.com"))
   }
 
   @Test

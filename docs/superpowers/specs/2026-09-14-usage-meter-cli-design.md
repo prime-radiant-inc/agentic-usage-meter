@@ -60,6 +60,10 @@ soonest reset and then the window identifier. It ranks windows only; a
 balance has no fraction to compare. The line reads as provider,
 account, percentage used, and time until reset, short enough for a
 prompt.
+The percentage carries the word `used`, because the menu-bar
+label renders the remaining fraction for the same window, and two
+bare complementary numbers on one screen are worse than four extra
+characters.
 
 Account records carry the authenticated identity, and `--json`
 includes it. The table does not: display names exist so that a glance

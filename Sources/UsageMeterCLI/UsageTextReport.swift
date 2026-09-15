@@ -33,7 +33,7 @@ enum UsageTextReport {
           account.providerDisplayName,
           account.displayName,
           window.label ?? window.kind.rawValue,
-          "\(percent(of: window))%",
+          "\(window.consumedPercent)%",
           relativeDuration(from: now, to: window.resetAt),
         ])
       }
@@ -64,7 +64,11 @@ enum UsageTextReport {
     guard let tightest = report.tightest else {
       return ""
     }
-    let head = "\(name(of: tightest.account)) \(percent(of: tightest.window))%"
+    // "used", not a bare number: the menu-bar label renders the *remaining*
+    // fraction for this same window, so two unlabeled complements would sit
+    // on one screen contradicting each other.
+    let head =
+      "\(name(of: tightest.account)) \(tightest.window.consumedPercent)% used"
     guard tightest.window.resetAt != nil else {
       return head
     }
@@ -110,10 +114,6 @@ enum UsageTextReport {
 
   private static func name(of account: UsageReportAccount) -> String {
     "\(account.providerDisplayName)/\(account.displayName)"
-  }
-
-  private static func percent(of window: UsageWindow) -> Int {
-    Int((window.consumedFraction * 100).rounded())
   }
 
   /// Pads every column but the last, so no line carries trailing

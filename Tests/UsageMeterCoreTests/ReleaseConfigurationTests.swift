@@ -275,6 +275,14 @@ struct ReleaseConfigurationTests {
         )
         #expect(plist["CFBundleShortVersionString"] as? String == "1.2.3")
         #expect(plist["CFBundleVersion"] as? String == "1002003")
+        #expect(
+            FileManager.default.fileExists(
+                atPath: temporaryRoot.appending(
+                    path: "build/Agentic Usage Meter.app"
+                        + "/Contents/MacOS/usage-meter",
+                ).path,
+            ),
+        )
     }
 
     @Test
