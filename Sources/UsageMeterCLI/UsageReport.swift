@@ -52,7 +52,13 @@ struct UsageReport: Equatable {
         if lhs.displayOrder != rhs.displayOrder {
           return lhs.displayOrder < rhs.displayOrder
         }
-        return lhs.displayName < rhs.displayName
+        if lhs.displayName != rhs.displayName {
+          return lhs.displayName < rhs.displayName
+        }
+        // Final tiebreak so the comparator is total: `sorted(by:)` is
+        // not documented as stable, and two accounts can otherwise
+        // share provider, displayOrder, and displayName.
+        return lhs.id.uuidString < rhs.id.uuidString
       }
       .map { account in
         UsageReportAccount(

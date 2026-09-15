@@ -25,10 +25,15 @@ enum StateFixture {
   static func populatedState() -> PersistedAppState {
     let accounts = [
       SubscriptionAccount(
-        id: claudeWorkID,
-        provider: .claude,
-        displayName: "Work",
-        authenticatedIdentity: "harper@example.com",
+        id: kimiID,
+        provider: .kimi,
+        displayName: "Kimi",
+        displayOrder: 0
+      ),
+      SubscriptionAccount(
+        id: codexPersonalID,
+        provider: .codex,
+        displayName: "Personal",
         displayOrder: 0
       ),
       SubscriptionAccount(
@@ -38,15 +43,10 @@ enum StateFixture {
         displayOrder: 1
       ),
       SubscriptionAccount(
-        id: codexPersonalID,
-        provider: .codex,
-        displayName: "Personal",
-        displayOrder: 0
-      ),
-      SubscriptionAccount(
-        id: kimiID,
-        provider: .kimi,
-        displayName: "Kimi",
+        id: claudeWorkID,
+        provider: .claude,
+        displayName: "Work",
+        authenticatedIdentity: "harper@example.com",
         displayOrder: 0
       ),
     ]
@@ -134,6 +134,22 @@ enum StateFixture {
 
   static func emptyState() -> PersistedAppState {
     PersistedAppState(accounts: [], snapshots: [:])
+  }
+
+  /// One account, present but with no snapshot at all, so there is an
+  /// account for `tightest` to consider and still no window on it.
+  static func accountsWithoutWindowsState() -> PersistedAppState {
+    PersistedAppState(
+      accounts: [
+        SubscriptionAccount(
+          id: claudeWorkID,
+          provider: .claude,
+          displayName: "Work",
+          displayOrder: 0
+        )
+      ],
+      snapshots: [:]
+    )
   }
 
   /// Two windows on different accounts consuming exactly the same

@@ -23,6 +23,28 @@ struct UsageReportTests {
   }
 
   @Test
+  func fallsBackToTheRawProviderValueWhenTheCatalogHasNoDefinition() {
+    let state = PersistedAppState(
+      accounts: [
+        SubscriptionAccount(
+          id: StateFixture.kimiID,
+          provider: .kimi,
+          displayName: "Kimi",
+          displayOrder: 0
+        )
+      ],
+      snapshots: [:]
+    )
+    let catalogWithoutKimi = ProviderCatalog(
+      definitions: ProviderCatalog.live.all.filter { $0.provider != .kimi }
+    )
+
+    let report = UsageReport(state: state, catalog: catalogWithoutKimi)
+
+    #expect(report.accounts[0].providerDisplayName == Provider.kimi.rawValue)
+  }
+
+  @Test
   func ordersWindowsByAscendingDuration() {
     let report = UsageReport(state: StateFixture.populatedState())
 
@@ -43,6 +65,7 @@ struct UsageReportTests {
       state: StateFixture.populatedState()
     ).accounts[1]
 
+    #expect(personal.accountID == StateFixture.claudePersonalID)
     #expect(personal.displayName == "Personal")
     #expect(personal.snapshot == nil)
     #expect(personal.fetchedAt == nil)
@@ -71,7 +94,11 @@ struct UsageReportTests {
 
   @Test
   func tightestIsNilWithoutAnyWindows() {
-    #expect(UsageReport(state: StateFixture.emptyState()).tightest == nil)
+    #expect(
+      UsageReport(
+        state: StateFixture.accountsWithoutWindowsState()
+      ).tightest == nil
+    )
   }
 
   @Test
