@@ -50,6 +50,23 @@ struct UsageMeterCLIProcessTests {
   }
 
   @Test
+  func aStateFileThatIsADirectoryExitsUnavailable() throws {
+    let directory = URL.temporaryDirectory
+      .appending(path: "usage-meter-tests-\(UUID().uuidString)")
+    try FileManager.default.createDirectory(
+      at: directory,
+      withIntermediateDirectories: true
+    )
+    defer { try? FileManager.default.removeItem(at: directory) }
+
+    let result = try run(["--state-file", directory.path])
+
+    #expect(result.exitCode == EX_UNAVAILABLE)
+    #expect(result.standardOutput.isEmpty)
+    #expect(!result.standardError.isEmpty)
+  }
+
+  @Test
   func anEmptyStateFileIsAnEmptySuccessRatherThanABlankLine() throws {
     let url = try StateFixture.write(StateFixture.emptyState())
 
