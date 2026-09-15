@@ -16,7 +16,8 @@ let package = Package(
             targets: ["AgenticUsageMeter"]
         ),
         .executable(name: "ClaudeWebProbe", targets: ["ClaudeWebProbe"]),
-        .executable(name: "UsageMeterProbe", targets: ["UsageMeterProbe"])
+        .executable(name: "UsageMeterProbe", targets: ["UsageMeterProbe"]),
+        .executable(name: "usage-meter", targets: ["UsageMeterCLI"])
     ],
     dependencies: [
         .package(
@@ -55,6 +56,10 @@ let package = Package(
             name: "UsageMeterProbe",
             dependencies: ["UsageMeterCore"]
         ),
+        .executableTarget(
+            name: "UsageMeterCLI",
+            dependencies: ["UsageMeterCore"]
+        ),
         .testTarget(
             name: "UsageMeterCoreTests",
             dependencies: ["UsageMeterCore"],
@@ -88,6 +93,13 @@ let package = Package(
         .testTarget(
             name: "UsageMeterWebTests",
             dependencies: ["UsageMeterWeb"]
+        ),
+        .testTarget(
+            name: "UsageMeterCLITests",
+            dependencies: ["UsageMeterCLI", "UsageMeterCore"],
+            resources: [
+                .copy("Fixtures")
+            ]
         )
     ],
     swiftLanguageModes: [.v6]

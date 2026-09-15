@@ -17,6 +17,18 @@ public actor AppStateStore {
         self.fileManager = fileManager
     }
 
+    public static func defaultFileURL(
+        fileManager: FileManager = .default
+    ) -> URL {
+        fileManager.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        )[0]
+        .appending(
+            path: "AgenticUsageMeter/state.json"
+        )
+    }
+
     public func load() throws -> PersistedAppState {
         guard fileManager.fileExists(atPath: fileURL.path) else {
             return .empty

@@ -39,6 +39,9 @@ done < <(
 
 "${codesign_bin}" \
     "${signing_arguments[@]}" \
+    "${application_path}/Contents/MacOS/usage-meter"
+"${codesign_bin}" \
+    "${signing_arguments[@]}" \
     "${application_path}/Contents/MacOS/AgenticUsageMeter"
 "${codesign_bin}" \
     "${signing_arguments[@]}" \

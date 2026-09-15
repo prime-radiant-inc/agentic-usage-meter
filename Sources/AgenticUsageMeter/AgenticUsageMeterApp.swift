@@ -97,7 +97,7 @@ enum AppEnvironment {
                         ),
                     ),
                 )
-                : AppStateStore(fileURL: stateFileURL())
+                : AppStateStore(fileURL: AppStateStore.defaultFileURL())
         let credentialStore = KeychainCredentialStore()
         #if DEBUG
             let refreshPolicy = RefreshPolicy.development
@@ -188,16 +188,6 @@ enum AppEnvironment {
                 throw ProviderClientError.temporaryFailure
             }
         }
-    }
-
-    private static func stateFileURL() -> URL {
-        FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-        )[0]
-            .appending(
-                path: "AgenticUsageMeter/state.json",
-            )
     }
 
     static func sampleState(

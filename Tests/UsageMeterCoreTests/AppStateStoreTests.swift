@@ -100,6 +100,18 @@ func stateStoreReportsCorruptDataWithoutOverwritingIt() async throws {
     #expect(try Data(contentsOf: fileURL) == corruptData)
 }
 
+@Test
+func stateStoreDefaultFileURLNamesApplicationSupportStateFile() {
+    let url = AppStateStore.defaultFileURL()
+
+    #expect(url.lastPathComponent == "state.json")
+    #expect(
+        url.deletingLastPathComponent().lastPathComponent
+            == "AgenticUsageMeter"
+    )
+    #expect(url.path.contains("Application Support"))
+}
+
 private func makeTemporaryDirectory() throws -> URL {
     let directory = FileManager.default.temporaryDirectory
         .appending(path: "AgenticUsageMeterTests-\(UUID().uuidString)", directoryHint: .isDirectory)
