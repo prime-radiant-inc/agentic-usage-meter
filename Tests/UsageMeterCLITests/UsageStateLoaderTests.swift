@@ -17,6 +17,15 @@ struct UsageStateLoaderTests {
   }
 
   @Test
+  func treatsAStateFileWithNoAccountsAsAnEmptySuccess() async throws {
+    let url = try StateFixture.write(StateFixture.emptyState())
+
+    let state = try await UsageStateLoader.load(from: url)
+
+    #expect(state.accounts.isEmpty)
+  }
+
+  @Test
   func reportsAMissingStateFile() async throws {
     let url = URL.temporaryDirectory
       .appending(path: "absent-\(UUID().uuidString)/state.json")
