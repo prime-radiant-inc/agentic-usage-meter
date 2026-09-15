@@ -9,11 +9,16 @@ application_name="Agentic Usage Meter"
 bundle_path="${repository_root}/build/${application_name}.app"
 contents_path="${bundle_path}/Contents"
 executable_name="AgenticUsageMeter"
+cli_name="usage-meter"
 
 swift build \
     --package-path "${repository_root}" \
     --configuration "${configuration}" \
     --product "${executable_name}"
+swift build \
+    --package-path "${repository_root}" \
+    --configuration "${configuration}" \
+    --product "${cli_name}"
 binary_directory=$(
     swift build \
         --package-path "${repository_root}" \
@@ -50,5 +55,9 @@ fi
     "${binary_directory}" \
     "${bundle_path}"
 /bin/chmod 755 "${contents_path}/MacOS/${executable_name}"
+/bin/cp \
+    "${binary_directory}/${cli_name}" \
+    "${contents_path}/MacOS/${cli_name}"
+/bin/chmod 755 "${contents_path}/MacOS/${cli_name}"
 
 echo "${bundle_path}"

@@ -248,6 +248,9 @@ struct ReleaseConfigurationTests {
         try Data("test executable".utf8).write(
             to: binaryDirectory.appending(path: "AgenticUsageMeter"),
         )
+        try Data("test executable".utf8).write(
+            to: binaryDirectory.appending(path: "usage-meter"),
+        )
 
         let result = try runScript(
             scriptsDirectory.appending(path: "assemble-app.sh"),
@@ -549,6 +552,11 @@ struct ReleaseConfigurationTests {
                 $0.hasSuffix("Contents/MacOS/AgenticUsageMeter")
             }),
         )
+        let cliIndex = try #require(
+            targets.firstIndex(where: {
+                $0.hasSuffix("Contents/MacOS/usage-meter")
+            }),
+        )
         let frameworkIndex = try #require(
             targets.firstIndex(where: { $0.hasSuffix("Sparkle.framework") }),
         )
@@ -572,6 +580,7 @@ struct ReleaseConfigurationTests {
         #expect(frameworkIndex < executableIndex)
         #expect(resourceBundleIndex < executableIndex)
         #expect(executableIndex < applicationIndex)
+        #expect(cliIndex < applicationIndex)
     }
 
     @Test
@@ -634,6 +643,11 @@ struct ReleaseConfigurationTests {
         try Data().write(
             to: applicationBundle.appending(
                 path: "Contents/MacOS/AgenticUsageMeter",
+            ),
+        )
+        try Data().write(
+            to: applicationBundle.appending(
+                path: "Contents/MacOS/usage-meter",
             ),
         )
         try Data(

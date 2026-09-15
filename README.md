@@ -84,6 +84,33 @@ minute per provider account. Release builds use a ten-minute minimum.
 Manual and on-demand refreshes share the same per-account limit, and provider
 retry or backoff can make the interval longer.
 
+## Terminal access
+
+The application bundle includes a `usage-meter` command that prints the
+quota picture the application last fetched. It reads the application's
+state file and makes no network requests, so it returns immediately and
+works whether or not the application is running.
+
+```sh
+"/Applications/Agentic Usage Meter.app/Contents/MacOS/usage-meter"
+```
+
+Link it onto your path to shorten that:
+
+```sh
+ln -s "/Applications/Agentic Usage Meter.app/Contents/MacOS/usage-meter" \
+    /usr/local/bin/usage-meter
+```
+
+`usage-meter` prints a table. `usage-meter --json` prints a versioned
+report for scripts. `usage-meter --tightest` prints one line for the
+window with the least headroom, which suits a shell prompt or a status
+line.
+
+The command exits 66 when the application has never written its state
+file and 65 when that file cannot be decoded, so a prompt can tell an
+unconfigured application from a broken one.
+
 ## Provider diagnostics
 
 Provider APIs and returned usage data can change. See the
