@@ -96,7 +96,10 @@ let package = Package(
         ),
         .testTarget(
             name: "UsageMeterCLITests",
-            dependencies: ["UsageMeterCLI", "UsageMeterCore"]
+            dependencies: ["UsageMeterCLI", "UsageMeterCore"],
+            resources: [
+                .copy("Fixtures")
+            ]
         )
     ],
     swiftLanguageModes: [.v6]
