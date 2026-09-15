@@ -256,6 +256,52 @@ enum StateFixture {
     )
   }
 
+  /// One account whose window carries a real `label` and whose
+  /// balance carries a real `cycleEndsAt`, so the JSON document has
+  /// something to lose if either field's `encode` call ever regresses
+  /// to `encodeIfPresent`. Every other fixture in this file leaves
+  /// both fields nil, so nothing else here would catch that
+  /// regression.
+  static func namedWindowWithRenewingBalanceState() -> PersistedAppState {
+    PersistedAppState(
+      accounts: [
+        SubscriptionAccount(
+          id: claudeWorkID,
+          provider: .claude,
+          displayName: "Work",
+          displayOrder: 0
+        )
+      ],
+      snapshots: [
+        claudeWorkID: UsageSnapshot(
+          accountID: claudeWorkID,
+          fetchedAt: referenceDate,
+          windows: [
+            UsageWindow(
+              id: "weekly",
+              kind: .weekly,
+              duration: 604_800,
+              resetAt: referenceDate.addingTimeInterval(280_800),
+              consumedFraction: 0.44,
+              label: "Grace period"
+            )!
+          ],
+          balances: [
+            UsageBalance(
+              id: "extra-credits",
+              label: "Extra usage",
+              value: .available(
+                amount: Decimal(string: "38.42")!,
+                unit: "USD"
+              ),
+              cycleEndsAt: referenceDate.addingTimeInterval(604_800)
+            )!
+          ]
+        )
+      ]
+    )
+  }
+
   /// Encodes `state` to a uniquely named file under the temporary
   /// directory and returns its URL. Real JSON, real layout.
   static func write(

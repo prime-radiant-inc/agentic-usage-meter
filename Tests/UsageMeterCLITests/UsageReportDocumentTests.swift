@@ -63,6 +63,29 @@ struct UsageReportDocumentTests {
   }
 
   @Test
+  func encodesNonNilLabelAndCycleEndsAt() throws {
+    let document = UsageReportDocument(
+      report: UsageReport(
+        state: StateFixture.namedWindowWithRenewingBalanceState()
+      ),
+      generatedAt: StateFixture.referenceDate
+    )
+    let data = try UsageReportDocument.encoder().encode(document)
+    let decoder = JSONDecoder()
+    decoder.dateDecodingStrategy = .iso8601
+    let decoded = try decoder.decode(UsageReportDocument.self, from: data)
+
+    let window = try #require(decoded.accounts.first?.windows.first)
+    #expect(window.label == "Grace period")
+
+    let balance = try #require(decoded.accounts.first?.balances.first)
+    #expect(
+      balance.cycleEndsAt
+        == StateFixture.referenceDate.addingTimeInterval(604_800)
+    )
+  }
+
+  @Test
   func roundTripsThroughDecoding() throws {
     let document = UsageReportDocument(
       report: UsageReport(state: StateFixture.populatedState()),
