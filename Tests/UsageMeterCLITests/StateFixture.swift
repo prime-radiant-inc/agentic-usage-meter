@@ -302,6 +302,43 @@ enum StateFixture {
     )
   }
 
+  /// One account with a single window that has never reset: nil
+  /// `resetAt` and zero `consumedFraction`, the only combination
+  /// `UsageWindow.init?` allows without a reset time. This is what a
+  /// freshly connected account looks like before any usage has been
+  /// recorded — not a lifetime cap, which this domain has no way to
+  /// represent, since every `UsageWindowKind` renews. `tightest`
+  /// picks this window trivially, since it is the only one, so
+  /// `UsageTextReport.tightestLine` can render it without a
+  /// "resets in" clause to falsify.
+  static func windowWithoutAResetState() -> PersistedAppState {
+    PersistedAppState(
+      accounts: [
+        SubscriptionAccount(
+          id: claudeWorkID,
+          provider: .claude,
+          displayName: "Work",
+          displayOrder: 0
+        )
+      ],
+      snapshots: [
+        claudeWorkID: UsageSnapshot(
+          accountID: claudeWorkID,
+          fetchedAt: referenceDate,
+          windows: [
+            UsageWindow(
+              id: "weekly",
+              kind: .weekly,
+              duration: 604_800,
+              resetAt: nil,
+              consumedFraction: 0
+            )!
+          ]
+        )
+      ]
+    )
+  }
+
   /// Encodes `state` to a uniquely named file under the temporary
   /// directory and returns its URL. Real JSON, real layout.
   static func write(

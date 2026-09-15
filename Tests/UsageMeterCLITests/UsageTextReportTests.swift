@@ -90,6 +90,16 @@ struct UsageTextReportTests {
   }
 
   @Test
+  func tightestLineOmitsTheResetClauseWhenTheWindowHasNoResetTime() {
+    #expect(
+      UsageTextReport.tightestLine(
+        UsageReport(state: StateFixture.windowWithoutAResetState()),
+        now: now
+      ) == "Claude/Work 0%"
+    )
+  }
+
+  @Test
   func formatsRelativeDurations() {
     #expect(UsageTextReport.relativeDuration(from: now, to: nil) == "—")
     #expect(
