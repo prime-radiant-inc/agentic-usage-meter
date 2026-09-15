@@ -1101,8 +1101,8 @@ git commit -m "Project persisted state into an ordered usage report"
 - Test: `Tests/UsageMeterCLITests/UsageStateLoaderTests.swift`
 
 **Interfaces:**
-- Consumes: `AppStateStore`, `AppStateStore.defaultFileURL` (Task 1),
-  `AppStateStoreError.corruptData`, `PersistedAppState`,
+- Consumes: `AppStateStore`, `AppStateStoreError.corruptData`,
+  `PersistedAppState`,
   `UsageMeterCLICommandError` (Task 2), `StateFixture` (Task 3).
 - Produces:
   - `enum UsageMeterCLIError: Error, Equatable { case stateFileMissing(URL), stateFileUnreadable }`
