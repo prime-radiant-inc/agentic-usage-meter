@@ -14,6 +14,10 @@ reset times returned for each connected account. Collapsible sections keep
 five-hour, weekly, monthly, and Extra Credits information readable when you
 have several accounts.
 
+Codex and Claude banked-reset rows expand to show remaining resets, their
+expiry dates, and availability. These rows are read-only; they do not redeem
+resets. See the [banked-reset data notes](docs/banked-resets.md).
+
 The app displays only quota windows and balances returned by the provider. It
 does not invent missing five-hour, weekly, monthly, or credit rows.
 

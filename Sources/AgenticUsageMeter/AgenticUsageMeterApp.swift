@@ -254,6 +254,7 @@ enum AppEnvironment {
                             provider: account.provider,
                             displayOrder: account.displayOrder,
                         ),
+                        bankedResets: sampleResets(account: account, now: now),
                     ),
                 )
             },
@@ -349,6 +350,33 @@ enum AppEnvironment {
             )!,
             weekly,
         ]
+    }
+
+    private static func sampleResets(account: SubscriptionAccount, now: Date) -> BankedResets? {
+        guard account.provider == .codex || account.provider == .claude else { return nil }
+        if account.displayOrder > 0 {
+            return account.provider == .codex
+                ? BankedResets(availableCount: 1, applicableCount: 0, grants: nil)
+                : BankedResets(availableCount: 0, applicableCount: 0, grants: [])
+        }
+        return BankedResets(
+            availableCount: 2,
+            applicableCount: account.provider == .claude ? 2 : 0,
+            grants: [
+                BankedReset(
+                    id: "sample-session", title: "Session reset", remainingCount: 1,
+                    expiresAt: now.addingTimeInterval(86_400 * 3),
+                    scopes: account.provider == .claude ? ["five_hour"] : ["codex_rate_limits"],
+                    availability: account.provider == .claude ? .ready : .banked
+                ),
+                BankedReset(
+                    id: "sample-full", title: "Full reset", remainingCount: 1,
+                    expiresAt: now.addingTimeInterval(86_400 * 10),
+                    scopes: account.provider == .claude ? ["five_hour", "seven_day"] : ["codex_rate_limits"],
+                    availability: account.provider == .claude ? .ready : .banked
+                ),
+            ]
+        )
     }
 
     private static func sampleBalances(

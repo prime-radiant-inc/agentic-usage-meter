@@ -350,7 +350,7 @@ extension UsageWindowKind {
   }
 }
 
-private func usageIdentity(
+func usageIdentity(
   for account: SubscriptionAccount,
 ) -> (providerText: String, accountText: String) {
   let providerText =
@@ -364,7 +364,7 @@ private func usageIdentity(
   return (providerText, trimmedAccountName)
 }
 
-private func accountStateComesBefore(
+func accountStateComesBefore(
   _ lhs: AccountViewState,
   _ rhs: AccountViewState,
 ) -> Bool {

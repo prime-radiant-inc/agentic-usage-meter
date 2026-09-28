@@ -709,6 +709,57 @@ struct AppModelTests {
     }
 
     @Test
+    func bankedResetExpansionSurvivesTheScrollingWidgetLayout() async throws {
+        let state = AppEnvironment.sampleState(showWidget: true)
+        let model = AppModel(
+            stateStore: TestAppStateStore(state: state),
+            credentialStore: TestCredentialStore(), adapters: [], isSampleData: true
+        )
+        await model.start()
+        let hosting = NSHostingView(rootView: FloatingWidgetView(model: model))
+        let panel = NSPanel(
+            contentRect: NSRect(x: 0, y: 0, width: 411, height: 240),
+            styleMask: [.borderless], backing: .buffered, defer: false
+        )
+        panel.contentView = hosting
+        panel.orderFront(nil)
+        defer { panel.orderOut(nil) }
+        hosting.layoutSubtreeIfNeeded()
+        try await Task.sleep(for: .milliseconds(100))
+        func scrollView(in view: NSView) -> NSScrollView? {
+            if let scroll = view as? NSScrollView { return scroll }
+            return view.subviews.lazy.compactMap { scrollView(in: $0) }.first
+        }
+        let collapsedScroll = try #require(scrollView(in: hosting))
+        let collapsedHeight = try #require(collapsedScroll.documentView).bounds.height
+        model.expandedResetAccounts = Set(state.accounts.map(\.id))
+        try await Task.sleep(for: .milliseconds(100))
+        hosting.layoutSubtreeIfNeeded()
+        let expandedScroll = try #require(scrollView(in: hosting))
+        let expandedHeight = try #require(expandedScroll.documentView).bounds.height
+        #expect(expandedHeight > collapsedHeight + 100)
+
+        panel.setContentSize(NSSize(width: 411, height: 1200))
+        try await Task.sleep(for: .milliseconds(100))
+        panel.setContentSize(NSSize(width: 411, height: 240))
+        try await Task.sleep(for: .milliseconds(100))
+        hosting.layoutSubtreeIfNeeded()
+        let resizedScroll = try #require(scrollView(in: hosting))
+        #expect(try #require(resizedScroll.documentView).bounds.height > collapsedHeight + 100)
+    }
+
+    @Test
+    func sampleDataIncludesExpandableResetListsForBothProviders() throws {
+        let state = AppEnvironment.sampleState(showWidget: true)
+        for provider in [Provider.codex, .claude] {
+            let account = try #require(state.accounts.first { $0.provider == provider })
+            let resets = try #require(state.snapshots[account.id]?.bankedResets)
+            #expect(resets.grants?.count == 2)
+            #expect(Set(resets.grants?.compactMap(\.expiresAt) ?? []).count == 2)
+        }
+    }
+
+    @Test
     func sampleDataIncludesKimiFiveHourWindow() throws {
         let state = AppEnvironment.sampleState(showWidget: false)
         let account = try #require(
@@ -1043,6 +1094,7 @@ struct AppModelTests {
         let expanded = NSHostingView(
             rootView: UsageTimelineView(
                 accounts: accounts,
+                expandedResetAccounts: .constant([]),
                 now: reference,
             )
             .frame(width: UsageTimelineMetrics.naturalWidth),
@@ -1050,6 +1102,7 @@ struct AppModelTests {
         let collapsed = NSHostingView(
             rootView: UsageTimelineView(
                 accounts: accounts,
+                expandedResetAccounts: .constant([]),
                 now: reference,
                 collapsedSections: [.short],
                 onToggleSection: { _ in },

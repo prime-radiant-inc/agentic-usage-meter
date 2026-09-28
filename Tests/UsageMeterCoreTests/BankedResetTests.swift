@@ -114,6 +114,7 @@ struct BankedResetTests {
         details: Data(details.utf8)
       ))
     #expect(snapshot.bankedResets?.availableCount == 1)
+    #expect(snapshot.bankedResets?.applicableCount == 0)
     #expect(snapshot.bankedResets?.grants == nil)
     #expect(snapshot.windows.count == 2)
   }

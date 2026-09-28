@@ -135,8 +135,10 @@ public struct MenuBarContentView: View {
     }
 
     private var timeline: some View {
-        UsageTimelineView(
+        @Bindable var model = model
+        return UsageTimelineView(
             accounts: model.accounts,
+            expandedResetAccounts: $model.expandedResetAccounts,
             collapsedSections:
                 model.collapsedUsageSections,
             onToggleSection: { section in

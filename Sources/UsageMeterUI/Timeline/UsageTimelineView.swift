@@ -8,9 +8,11 @@ public struct UsageTimelineView: View {
   private let collapsedSections: Set<UsageSectionID>
   private let onToggleSection: ((UsageSectionID) -> Void)?
   private let onOpenAccount: ((AccountViewState) -> Void)?
+  @Binding private var expandedResetAccounts: Set<UUID>
 
   public init(
     accounts: [AccountViewState],
+    expandedResetAccounts: Binding<Set<UUID>>,
     now: Date = Date(),
     timeZone: TimeZone = .autoupdatingCurrent,
     collapsedSections: Set<UsageSectionID> = [],
@@ -18,6 +20,7 @@ public struct UsageTimelineView: View {
     onOpenAccount: ((AccountViewState) -> Void)? = nil,
   ) {
     self.accounts = accounts
+    self._expandedResetAccounts = expandedResetAccounts
     self.now = now
     self.timeZone = timeZone
     self.collapsedSections = collapsedSections
@@ -45,6 +48,34 @@ public struct UsageTimelineView: View {
           Divider()
         }
         balanceSection(timeline.balanceRows)
+      }
+
+      let resetRows = accounts.sorted(by: accountStateComesBefore).compactMap { state in
+        state.snapshot?.bankedResets.map {
+          BankedResetRowPresentation(account: state.account, resets: $0, now: now, timeZone: timeZone)
+        }
+      }
+      if !resetRows.isEmpty {
+        Divider()
+        VStack(alignment: .leading, spacing: UsageTimelineMetrics.sectionContentSpacing) {
+          Text("Banked Resets")
+            .font(.headline)
+          ForEach(resetRows) { row in
+            BankedResetRow(
+              row: row,
+              isExpanded: Binding(
+                get: { expandedResetAccounts.contains(row.id) },
+                set: { expanded in
+                  if expanded {
+                    expandedResetAccounts.insert(row.id)
+                  } else {
+                    expandedResetAccounts.remove(row.id)
+                  }
+                }
+              )
+            )
+          }
+        }
       }
     }
   }

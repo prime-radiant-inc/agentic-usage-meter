@@ -45,7 +45,11 @@ enum BankedResetDecoder {
     // Preserve the server's count if a new status or omitted entry prevents a
     // complete list; never imply the visible subset is the entire bank.
     guard grants.count == payload.availableCount else {
-      return BankedResets(availableCount: payload.availableCount, applicableCount: nil, grants: nil)
+      return BankedResets(
+        availableCount: payload.availableCount,
+        applicableCount: summary?.availableCount == payload.availableCount
+          ? summary?.applicableCount : nil,
+        grants: nil)
     }
     return BankedResets(
       availableCount: payload.availableCount,

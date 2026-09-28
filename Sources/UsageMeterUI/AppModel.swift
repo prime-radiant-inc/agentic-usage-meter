@@ -68,6 +68,7 @@ public final class AppModel {
         @Sendable (TimeInterval) async throws -> Void
 
     public private(set) var accounts: [AccountViewState] = []
+    public var expandedResetAccounts: Set<UUID> = []
     public private(set) var isFloatingWidgetVisible = false
     public private(set) var floatingWidgetPlacement:
         FloatingWidgetPlacement?
