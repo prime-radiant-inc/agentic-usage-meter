@@ -2,8 +2,10 @@
 
 Verified on 2026-09-28 against local authenticated accounts. Both Codex and
 Claude expose unused reset information through their existing usage API
-surfaces. The app displays a banked-reset row per account, expandable into
-remaining grants sorted by expiry. Missing details are distinguished from an
+surfaces. The collapsed Banked Resets section shows one horizontal row of
+counts, one per subscription, with provider marks and account labels. A single
+section disclosure expands all accounts and their remaining grants sorted by
+expiry. The collapsed row scrolls horizontally when subscriptions overflow. Missing details are distinguished from an
 empty bank. Expiry dates include the local date, time, and time zone.
 
 ## Codex

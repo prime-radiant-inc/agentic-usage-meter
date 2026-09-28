@@ -3,10 +3,30 @@ import UsageMeterCore
 
 struct BankedResetRow: View {
   let row: BankedResetRowPresentation
-  @Binding var isExpanded: Bool
 
   var body: some View {
-    DisclosureGroup(isExpanded: $isExpanded) {
+    VStack(alignment: .leading, spacing: 0) {
+      HStack(spacing: UsageTimelineMetrics.columnSpacing) {
+        Text(usageIdentity(for: row.account).providerText)
+          .foregroundStyle(.secondary)
+          .frame(width: UsageTimelineMetrics.providerColumnWidth, alignment: .leading)
+        Text(row.account.displayName)
+          .fontWeight(.medium)
+          .lineLimit(1)
+          .truncationMode(.tail)
+        Spacer(minLength: 8)
+        Text("\(row.availableCount)")
+          .monospacedDigit()
+          .fontWeight(.semibold)
+      }
+      .font(.caption)
+      .frame(minHeight: UsageTimelineMetrics.rowHeight)
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel(
+        "\(usageIdentity(for: row.account).providerText), \(row.account.displayName)"
+      )
+      .accessibilityValue("\(row.availableCount) banked resets")
+
       VStack(alignment: .leading, spacing: 10) {
         if let applicable = row.applicableCount, row.availableCount > 0 {
           Text("\(applicable) usable now")
@@ -51,27 +71,7 @@ struct BankedResetRow: View {
       .font(.caption)
       .frame(maxWidth: .infinity, alignment: .leading)
       .padding(.vertical, 6)
-    } label: {
-      HStack(spacing: UsageTimelineMetrics.columnSpacing) {
-        Text(usageIdentity(for: row.account).providerText)
-          .foregroundStyle(.secondary)
-          .frame(width: UsageTimelineMetrics.providerColumnWidth, alignment: .leading)
-        Text(row.account.displayName)
-          .fontWeight(.medium)
-          .lineLimit(1)
-          .truncationMode(.tail)
-        Spacer(minLength: 8)
-        Text("\(row.availableCount)")
-          .monospacedDigit()
-          .fontWeight(.semibold)
-      }
-      .font(.caption)
-      .frame(minHeight: UsageTimelineMetrics.rowHeight)
-      .accessibilityElement(children: .ignore)
-      .accessibilityLabel(
-        "\(usageIdentity(for: row.account).providerText), \(row.account.displayName)"
-      )
-      .accessibilityValue("\(row.availableCount) banked resets")
+
     }
   }
 }

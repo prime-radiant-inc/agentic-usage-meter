@@ -8,11 +8,11 @@ public struct UsageTimelineView: View {
   private let collapsedSections: Set<UsageSectionID>
   private let onToggleSection: ((UsageSectionID) -> Void)?
   private let onOpenAccount: ((AccountViewState) -> Void)?
-  @Binding private var expandedResetAccounts: Set<UUID>
+  @Binding private var areBankedResetsExpanded: Bool
 
   public init(
     accounts: [AccountViewState],
-    expandedResetAccounts: Binding<Set<UUID>>,
+    areBankedResetsExpanded: Binding<Bool>,
     now: Date = Date(),
     timeZone: TimeZone = .autoupdatingCurrent,
     collapsedSections: Set<UsageSectionID> = [],
@@ -20,7 +20,7 @@ public struct UsageTimelineView: View {
     onOpenAccount: ((AccountViewState) -> Void)? = nil,
   ) {
     self.accounts = accounts
-    self._expandedResetAccounts = expandedResetAccounts
+    self._areBankedResetsExpanded = areBankedResetsExpanded
     self.now = now
     self.timeZone = timeZone
     self.collapsedSections = collapsedSections
@@ -58,22 +58,19 @@ public struct UsageTimelineView: View {
       if !resetRows.isEmpty {
         Divider()
         VStack(alignment: .leading, spacing: UsageTimelineMetrics.sectionContentSpacing) {
-          Text("Banked Resets")
-            .font(.headline)
-          ForEach(resetRows) { row in
-            BankedResetRow(
-              row: row,
-              isExpanded: Binding(
-                get: { expandedResetAccounts.contains(row.id) },
-                set: { expanded in
-                  if expanded {
-                    expandedResetAccounts.insert(row.id)
-                  } else {
-                    expandedResetAccounts.remove(row.id)
-                  }
-                }
-              )
-            )
+          UsageSectionDisclosureHeader(
+            title: "Banked Resets",
+            identityColumnsWidth: identityColumnsWidth,
+            showsTimelineColumns: false,
+            isExpanded: areBankedResetsExpanded,
+            onToggle: { areBankedResetsExpanded.toggle() },
+          )
+          if areBankedResetsExpanded {
+            ForEach(resetRows) { row in
+              BankedResetRow(row: row)
+            }
+          } else {
+            CollapsedBankedResetShelf(rows: resetRows)
           }
         }
       }

@@ -76,7 +76,7 @@ enum AccountRowAction: Equatable {
 struct AccountDashboardView: View {
     let route: AccountDashboardRoute
     let state: AccountViewState
-    @State private var expandedResetAccounts: Set<UUID> = []
+    @State private var areBankedResetsExpanded: Bool = false
 
     var body: some View {
         switch route.strategy {
@@ -132,7 +132,7 @@ struct AccountDashboardView: View {
                     Text(nativeStatusText)
                 }
             } else {
-                UsageTimelineView(accounts: [state], expandedResetAccounts: $expandedResetAccounts)
+                UsageTimelineView(accounts: [state], areBankedResetsExpanded: $areBankedResetsExpanded)
             }
         }
         .padding(20)

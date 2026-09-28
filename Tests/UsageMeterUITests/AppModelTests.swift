@@ -709,6 +709,22 @@ struct AppModelTests {
     }
 
     @Test
+    func collapsedBankedResetsStayOnOneRowWhenSubscriptionsOverflow() {
+        let rows = (0..<8).map { index in
+            BankedResetRowPresentation(
+                account: SubscriptionAccount(provider: .codex, displayName: "Account \(index)", displayOrder: index),
+                resets: BankedResets(availableCount: index, applicableCount: nil, grants: nil),
+                now: reference,
+            )
+        }
+        let single = NSHostingView(rootView: CollapsedBankedResetShelf(rows: Array(rows.prefix(1))).frame(width: 320))
+        let multiple = NSHostingView(rootView: CollapsedBankedResetShelf(rows: rows).frame(width: 320))
+        #expect(single.fittingSize.height > 0)
+        #expect(abs(single.fittingSize.height - multiple.fittingSize.height) < 1)
+        #expect(multiple.fittingSize.width == 320)
+    }
+
+    @Test
     func bankedResetExpansionSurvivesTheScrollingWidgetLayout() async throws {
         let state = AppEnvironment.sampleState(showWidget: true)
         let model = AppModel(
@@ -732,7 +748,7 @@ struct AppModelTests {
         }
         let collapsedScroll = try #require(scrollView(in: hosting))
         let collapsedHeight = try #require(collapsedScroll.documentView).bounds.height
-        model.expandedResetAccounts = Set(state.accounts.map(\.id))
+        model.areBankedResetsExpanded = true
         try await Task.sleep(for: .milliseconds(100))
         hosting.layoutSubtreeIfNeeded()
         let expandedScroll = try #require(scrollView(in: hosting))
@@ -746,6 +762,13 @@ struct AppModelTests {
         hosting.layoutSubtreeIfNeeded()
         let resizedScroll = try #require(scrollView(in: hosting))
         #expect(try #require(resizedScroll.documentView).bounds.height > collapsedHeight + 100)
+
+        model.areBankedResetsExpanded = false
+        try await Task.sleep(for: .milliseconds(100))
+        hosting.layoutSubtreeIfNeeded()
+        let collapsedAgain = try #require(scrollView(in: hosting))
+        #expect(abs(try #require(collapsedAgain.documentView).bounds.height - collapsedHeight) < 1)
+
     }
 
     @Test
@@ -1094,7 +1117,7 @@ struct AppModelTests {
         let expanded = NSHostingView(
             rootView: UsageTimelineView(
                 accounts: accounts,
-                expandedResetAccounts: .constant([]),
+                areBankedResetsExpanded: .constant(false),
                 now: reference,
             )
             .frame(width: UsageTimelineMetrics.naturalWidth),
@@ -1102,7 +1125,7 @@ struct AppModelTests {
         let collapsed = NSHostingView(
             rootView: UsageTimelineView(
                 accounts: accounts,
-                expandedResetAccounts: .constant([]),
+                areBankedResetsExpanded: .constant(false),
                 now: reference,
                 collapsedSections: [.short],
                 onToggleSection: { _ in },
