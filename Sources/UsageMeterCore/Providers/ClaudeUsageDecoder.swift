@@ -64,6 +64,7 @@ public struct ClaudeUsageDecoder: Sendable {
             fetchedAt: fetchedAt,
             windows: [shortWindow, weeklyWindow] + scopedWindows(from: payload),
             balances: balances,
+            bankedResets: BankedResetDecoder.claude(data, now: fetchedAt),
         )
     }
 

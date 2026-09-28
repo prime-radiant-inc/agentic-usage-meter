@@ -328,17 +328,20 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
   public let fetchedAt: Date
   public let windows: [UsageWindow]
   public let balances: [UsageBalance]
+  public let bankedResets: BankedResets?
 
   public init(
     accountID: UUID,
     fetchedAt: Date,
     windows: [UsageWindow],
-    balances: [UsageBalance] = []
+    balances: [UsageBalance] = [],
+    bankedResets: BankedResets? = nil
   ) {
     self.accountID = accountID
     self.fetchedAt = fetchedAt
     self.windows = windows
     self.balances = balances
+    self.bankedResets = bankedResets
   }
 
   public init(from decoder: Decoder) throws {
@@ -346,6 +349,7 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
     accountID = try container.decode(UUID.self, forKey: .accountID)
     fetchedAt = try container.decode(Date.self, forKey: .fetchedAt)
     windows = try container.decode([UsageWindow].self, forKey: .windows)
+    bankedResets = try container.decodeIfPresent(BankedResets.self, forKey: .bankedResets)
     balances =
       try container.decodeIfPresent(
         [UsageBalance].self,
@@ -358,5 +362,6 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
     case fetchedAt
     case windows
     case balances
+    case bankedResets
   }
 }

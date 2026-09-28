@@ -114,7 +114,7 @@ public final class ClaudeWebUsageClient {
         let url = Self.baseURL.appending(
             path: "api/organizations/\(organizationID.uuidString.lowercased())/usage",
             directoryHint: .notDirectory
-        )
+        ).appending(queryItems: [URLQueryItem(name: "cedar_ember", value: "1")])
         let response = try await sendRequest(url: url, profileID: profileID)
         try validate(response, relativeTo: now)
         return try decoder.decode(

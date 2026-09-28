@@ -172,7 +172,7 @@ struct ClaudeWebUsageClientTests {
         #expect(
             request.url?.absoluteString
                 == "https://claude.ai/api/organizations/"
-                + "\(organizationID.uuidString.lowercased())/usage"
+                + "\(organizationID.uuidString.lowercased())/usage?cedar_ember=1"
         )
         #expect(
             request.value(forHTTPHeaderField: "Cookie")

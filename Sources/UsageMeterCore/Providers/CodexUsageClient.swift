@@ -47,10 +47,25 @@ public struct CodexUsageClient: UsageProviderClient {
         let response = try await transport.send(request)
         switch response.statusCode {
         case 200 ... 299:
-            return try decoder.decode(
+            let snapshot = try decoder.decode(
                 response.data,
                 accountID: accountID,
                 fetchedAt: now
+            )
+            guard snapshot.bankedResets != nil else { return snapshot }
+            request.url = URL(string: "https://chatgpt.com/backend-api/wham/rate-limit-reset-credits")!
+            // Grant details enrich the snapshot; a failure here must not hide
+            // successfully fetched quota windows or the known reset count.
+            guard let details = try? await transport.send(request),
+                (200 ... 299).contains(details.statusCode),
+                let resets = BankedResetDecoder.codexDetails(details.data, summary: snapshot.bankedResets, now: now)
+            else { return snapshot }
+            return UsageSnapshot(
+                accountID: accountID,
+                fetchedAt: now,
+                windows: snapshot.windows,
+                balances: snapshot.balances,
+                bankedResets: resets
             )
         case 401, 403:
             throw ProviderClientError.reauthenticationRequired
@@ -127,6 +142,7 @@ public struct CodexUsageDecoder: Sendable {
             fetchedAt: fetchedAt,
             windows: windows,
             balances: balances,
+            bankedResets: BankedResetDecoder.codexSummary(data),
         )
     }
 
