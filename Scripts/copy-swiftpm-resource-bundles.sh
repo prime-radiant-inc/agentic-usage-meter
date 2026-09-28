@@ -19,6 +19,11 @@ fi
     "${source_bundle}" \
     "${copied_bundle}"
 
+# Structured resource bundles already carry the metadata required for signing.
+if [[ -f "${copied_bundle}/Contents/Info.plist" ]]; then
+    exit 0
+fi
+
 bundle_info_plist="${copied_bundle}/Info.plist"
 /usr/bin/plutil -create xml1 "${bundle_info_plist}"
 /usr/bin/plutil \

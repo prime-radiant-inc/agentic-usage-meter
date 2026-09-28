@@ -362,6 +362,37 @@ struct ReleaseConfigurationTests {
     }
 
     @Test
+    func structuredResourceBundlePreservesItsInfoPlist() throws {
+        let temporaryRoot = FileManager.default.temporaryDirectory
+            .appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: temporaryRoot) }
+        let binaryDirectory = temporaryRoot.appending(path: "bin")
+        let bundleName = "AgenticUsageMeter_UsageMeterUI.bundle"
+        let sourceContents = binaryDirectory.appending(path: bundleName)
+            .appending(path: "Contents")
+        try FileManager.default.createDirectory(
+            at: sourceContents.appending(path: "Resources"),
+            withIntermediateDirectories: true,
+        )
+        let metadata = try PropertyListSerialization.data(
+            fromPropertyList: ["CFBundleIdentifier": "test.resources"],
+            format: .xml,
+            options: 0,
+        )
+        try metadata.write(to: sourceContents.appending(path: "Info.plist"))
+        let applicationBundle = temporaryRoot.appending(path: "Test.app")
+        let result = try runScript(
+            repositoryRoot.appending(path: "Scripts/copy-swiftpm-resource-bundles.sh"),
+            arguments: [binaryDirectory.path, applicationBundle.path],
+        )
+        try #require(result.terminationStatus == 0)
+        let copiedBundle = applicationBundle.appending(path: "Contents/Resources")
+            .appending(path: bundleName)
+        #expect(try Data(contentsOf: copiedBundle.appending(path: "Contents/Info.plist")) == metadata)
+        #expect(!FileManager.default.fileExists(atPath: copiedBundle.appending(path: "Info.plist").path))
+    }
+
+    @Test
     func swiftPMResourceBundleIsCopiedIntoAppResources() throws {
         let temporaryRoot = FileManager.default.temporaryDirectory
             .appending(path: UUID().uuidString)
