@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+## 0.2.7 - 2026-09-28
+
+### Added
+
+- Codex and Claude subscriptions show banked reset counts in a compact row.
+  Expand Banked Resets to see every account's remaining resets, expiry dates,
+  usage scopes, and availability together.
+- Reset details preserve ordinary quota readings when the provider's
+  supplementary reset request is unavailable.
+
+### Fixed
+
+- Removing a browser account clears its live session data before deleting
+  the profile, preventing old authentication cookies from reappearing.
+- Credit balances show readable precision and retain their unit instead of
+  truncating long decimal values.
+- App packaging preserves structured SwiftPM resource bundle metadata so
+  signing succeeds with the current Swift build system.
+
 ## 0.2.6 - 2026-09-14
 
 ### Fixed
