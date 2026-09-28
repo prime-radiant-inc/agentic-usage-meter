@@ -190,7 +190,8 @@ public struct UsageTimelineView: View {
               .font(.caption.monospacedDigit())
               .fontWeight(.semibold)
               .lineLimit(1)
-              .frame(width: 88, alignment: .trailing)
+              .fixedSize(horizontal: true, vertical: false)
+              .frame(minWidth: 88, alignment: .trailing)
           }
           .frame(height: UsageTimelineMetrics.rowHeight)
           .accessibilityElement(children: .ignore)

@@ -767,6 +767,13 @@ struct TimelinePresentationTests {
         ),
         "1,240.5 credits"
       ),
+      (
+        .available(
+          amount: Decimal(string: "4538.470349")!,
+          unit: "credits",
+        ),
+        "4,538.47 credits"
+      ),
       (.unlimited, "Unlimited"),
       (.disabled, "Off"),
     ]

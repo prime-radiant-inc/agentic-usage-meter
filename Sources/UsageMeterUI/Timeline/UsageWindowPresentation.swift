@@ -284,7 +284,7 @@ public struct UsageBalanceRowPresentation:
     }
 
     formatter.numberStyle = .decimal
-    formatter.maximumFractionDigits = 8
+    formatter.maximumFractionDigits = unit == "credits" ? 2 : 8
     let amountText = formatter.string(from: number) ?? "\(number)"
     return "\(amountText) \(unit)"
   }
