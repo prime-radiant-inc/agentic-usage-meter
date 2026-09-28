@@ -34,11 +34,16 @@ public final class AccountWebProfileStore {
     ]
 
     public static func remove(accountID: UUID) async throws {
-        weak var initializedStore: WKWebsiteDataStore?
-        autoreleasepool {
-            let store = WKWebsiteDataStore(forIdentifier: accountID)
-            initializedStore = store
-        }
+        var store: WKWebsiteDataStore? = WKWebsiteDataStore(forIdentifier: accountID)
+        // Removing the profile directory can leave cookies in WebKit's live
+        // network session. Clear session data before deleting its storage so
+        // recreating the same profile cannot restore the old authentication.
+        await store?.removeData(
+            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(),
+            modifiedSince: .distantPast
+        )
+        weak var initializedStore = store
+        store = nil
 
         // Removal works with lingering store references, so waiting for
         // WebKit's asynchronous release of the bootstrap store is only a
