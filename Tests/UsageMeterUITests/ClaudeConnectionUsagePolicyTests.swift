@@ -22,7 +22,7 @@ struct ClaudeConnectionUsagePolicyTests {
     func undecodableUsageFailsTheConnectionInsteadOfSavingIt() async throws {
         let model = try await makeModel(
             organizationsJSON: singleOrganizationJSON,
-            usageBodies: [#"{"five_hour":null,"seven_day":null}"#],
+            usageBodies: [#"{"five_hour":"unexpected","seven_day":null}"#],
         )
 
         await model.qualifyLogin(
@@ -35,6 +35,22 @@ struct ClaudeConnectionUsagePolicyTests {
                     "Claude returned a usage response this app does not understand.",
                 ),
         )
+    }
+
+    @Test
+    func nullWindowsQualifyWithoutInventingUsage() async throws {
+        let (model, appModel) = try await makeModelReturningAppModel(
+            organizationsJSON: singleOrganizationJSON,
+            usageBodies: [#"{"five_hour":null,"seven_day":null}"#],
+        )
+        await model.qualifyLogin(authenticatedCookies: [Self.sessionCookie])
+        #expect(model.phase == .readyToSave(
+            organizationName: "Personal", organizationCount: 1
+        ))
+        try await model.save(displayName: "Personal")
+        let snapshot = try #require(appModel.accounts.first?.snapshot)
+        #expect(snapshot.windows.isEmpty)
+        #expect(!snapshot.hasReportedUsage)
     }
 
     @Test
