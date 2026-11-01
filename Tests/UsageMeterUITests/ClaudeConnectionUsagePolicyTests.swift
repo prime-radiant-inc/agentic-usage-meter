@@ -41,7 +41,7 @@ struct ClaudeConnectionUsagePolicyTests {
     func nullWindowsQualifyWithoutInventingUsage() async throws {
         let (model, appModel) = try await makeModelReturningAppModel(
             organizationsJSON: singleOrganizationJSON,
-            usageBodies: [#"{"five_hour":null,"seven_day":null}"#],
+            usageBodies: [#"{"five_hour":null,"seven_day":null,"cedar_ember":{"eligible":false,"grants":[]}}"#],
         )
         await model.qualifyLogin(authenticatedCookies: [Self.sessionCookie])
         #expect(model.phase == .readyToSave(
@@ -51,6 +51,7 @@ struct ClaudeConnectionUsagePolicyTests {
         let snapshot = try #require(appModel.accounts.first?.snapshot)
         #expect(snapshot.windows.isEmpty)
         #expect(!snapshot.hasReportedUsage)
+        #expect(snapshot.bankedResets?.availableCount == 0)
     }
 
     @Test

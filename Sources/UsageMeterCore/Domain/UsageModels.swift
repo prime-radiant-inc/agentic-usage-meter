@@ -331,7 +331,7 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
   public let bankedResets: BankedResets?
 
   public var hasReportedUsage: Bool {
-    !windows.isEmpty || !balances.isEmpty || bankedResets != nil
+    !windows.isEmpty || !balances.isEmpty
   }
 
   public init(

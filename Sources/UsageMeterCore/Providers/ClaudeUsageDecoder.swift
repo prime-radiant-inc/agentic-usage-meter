@@ -345,6 +345,8 @@ private struct UsagePayload: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Both keys are required; explicit null means no reported window.
+        // decodeIfPresent would also accept missing keys and hide schema drift.
         fiveHour = try container.decode(
             Optional<WindowPayload>.self,
             forKey: .fiveHour

@@ -131,7 +131,9 @@ struct AccountDashboardView: View {
                 } description: {
                     Text(nativeStatusText)
                 }
-            } else {
+            }
+            if state.snapshot != nil {
+                // Reset metadata remains useful even when quota is unavailable.
                 UsageTimelineView(accounts: [state], areBankedResetsExpanded: $areBankedResetsExpanded)
             }
         }

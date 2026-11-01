@@ -43,12 +43,13 @@ struct ClaudeUsageDecoderTests {
     @Test
     func nullWindowsDoNotInventUnusedQuota() throws {
         let snapshot = try ClaudeUsageDecoder().decode(
-            Data(#"{"five_hour":null,"seven_day":null}"#.utf8),
+            Data(#"{"five_hour":null,"seven_day":null,"cedar_ember":{"eligible":false,"grants":[]}}"#.utf8),
             accountID: UUID(), fetchedAt: Date()
         )
         #expect(snapshot.windows.isEmpty)
         #expect(snapshot.balances.isEmpty)
         #expect(!snapshot.hasReportedUsage)
+        #expect(snapshot.bankedResets?.availableCount == 0)
     }
 
     @Test
