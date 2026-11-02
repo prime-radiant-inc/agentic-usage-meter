@@ -4,6 +4,83 @@ import Testing
 
 @Suite
 struct ClaudeUsageDecoderTests {
+    @Test(arguments: ["five_hour", "seven_day"])
+    func nullWindowPreservesOtherReportedUsage(field: String) throws {
+        var payload = try #require(
+            JSONSerialization.jsonObject(with: fixture(named: "claude-usage"))
+                as? [String: Any]
+        )
+        payload[field] = NSNull()
+        let snapshot = try ClaudeUsageDecoder().decode(
+            JSONSerialization.data(withJSONObject: payload),
+            accountID: UUID(), fetchedAt: Date()
+        )
+        let absentID = field == "five_hour" ? "five-hour" : "seven-day"
+        #expect(!snapshot.windows.contains { $0.id == absentID })
+        #expect(snapshot.windows.count == 2)
+        #expect(snapshot.windows.last?.label == "Fable")
+        #expect(snapshot.windows.last?.consumedFraction == 0.42)
+        #expect(snapshot.hasReportedUsage)
+    }
+
+    @Test
+    func nullLegacyWindowsPreserveScopedUsage() throws {
+        var payload = try #require(
+            JSONSerialization.jsonObject(with: fixture(named: "claude-usage"))
+                as? [String: Any]
+        )
+        payload["five_hour"] = NSNull()
+        payload["seven_day"] = NSNull()
+        let snapshot = try ClaudeUsageDecoder().decode(
+            JSONSerialization.data(withJSONObject: payload),
+            accountID: UUID(), fetchedAt: Date()
+        )
+        #expect(snapshot.windows.count == 1)
+        #expect(snapshot.windows.first?.label == "Fable")
+        #expect(snapshot.windows.first?.consumedFraction == 0.42)
+    }
+
+    @Test
+    func nullWindowsDoNotInventUnusedQuota() throws {
+        let snapshot = try ClaudeUsageDecoder().decode(
+            Data(#"{"five_hour":null,"seven_day":null,"cedar_ember":{"eligible":false,"grants":[]}}"#.utf8),
+            accountID: UUID(), fetchedAt: Date()
+        )
+        #expect(snapshot.windows.isEmpty)
+        #expect(snapshot.balances.isEmpty)
+        #expect(!snapshot.hasReportedUsage)
+        #expect(snapshot.bankedResets?.availableCount == 0)
+    }
+
+    @Test
+    func nullWindowsPreserveCreditBalances() throws {
+        let snapshot = try ClaudeUsageDecoder().decode(
+            Data(#"{"five_hour":null,"seven_day":null,"spend":{"enabled":true,"balance":{"amount_minor":1250,"currency":"USD","exponent":2}}}"#.utf8),
+            accountID: UUID(), fetchedAt: Date()
+        )
+        #expect(snapshot.windows.isEmpty)
+        #expect(snapshot.balances.map(\.value) == [
+            .available(amount: Decimal(string: "12.50")!, unit: "USD")
+        ])
+        #expect(snapshot.hasReportedUsage)
+    }
+
+    @Test(arguments: [
+        #"{}"#,
+        #"{"five_hour":null}"#,
+        #"{"five_hour":"unknown","seven_day":null}"#,
+        #"{"five_hour":{"utilization":-1,"resets_at":null},"seven_day":null}"#,
+        #"{"five_hour":{"utilization":101,"resets_at":null},"seven_day":null}"#,
+        #"{"five_hour":null,"seven_day":{"utilization":20,"resets_at":"bad-date"}}"#,
+    ])
+    func nullableWindowsStillRejectMalformedResponses(json: String) {
+        #expect(throws: ProviderClientError.unsupportedResponse) {
+            try ClaudeUsageDecoder().decode(
+                Data(json.utf8), accountID: UUID(), fetchedAt: Date()
+            )
+        }
+    }
+
     @Test
     func requiredWindowsDecodeWithoutProviderTransport() throws {
         let data = try fixture(named: "claude-usage")

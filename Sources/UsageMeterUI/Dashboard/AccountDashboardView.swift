@@ -122,7 +122,7 @@ struct AccountDashboardView: View {
 
             Divider()
 
-            if state.snapshot == nil {
+            if state.snapshot?.hasReportedUsage != true {
                 ContentUnavailableView {
                     Label(
                         "No usage data",
@@ -131,7 +131,9 @@ struct AccountDashboardView: View {
                 } description: {
                     Text(nativeStatusText)
                 }
-            } else {
+            }
+            if state.snapshot != nil {
+                // Reset metadata remains useful even when quota is unavailable.
                 UsageTimelineView(accounts: [state], areBankedResetsExpanded: $areBankedResetsExpanded)
             }
         }
@@ -150,7 +152,9 @@ struct AccountDashboardView: View {
         case .unsupportedResponse:
             "The provider response is not currently supported."
         case nil:
-            "Usage has not been fetched yet."
+            state.snapshot == nil
+                ? "Usage has not been fetched yet."
+                : "The provider returned no usage windows or balances."
         }
     }
 }

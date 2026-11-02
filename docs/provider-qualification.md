@@ -108,6 +108,24 @@ callback.
   the response; a response without `limits` still yields exactly the two
   legacy windows.
 
+### 2026-11-01 nullable Claude usage windows
+
+- A release 0.2.7 installation rejected fresh usage reads and an attended
+  reconnect with the structural diagnostic `null value at five_hour`.
+  Authentication had succeeded before usage validation failed.
+- Legacy `five_hour` and `seven_day` keys remain required, but an explicit
+  null omits that window. Valid remaining windows, scoped pools, balances,
+  and reset metadata are preserved. Wrong types and malformed values still
+  fail validation; missing quota is never represented as zero consumption.
+- Unlike the earlier qualification policy, a response with both windows
+  explicitly null can qualify and save. An account with no windows or
+  balances says "No usage reported" in Settings and shows an explanatory
+  dashboard message. Banked-reset metadata remains visible separately and
+  does not count as reported usage. Empty snapshots create no quota rows
+  in the menu bar or floating widget.
+- Regression tests include the live request's optional `cedar_ember` metadata
+  with no grants. Fixtures are synthetic and contain no account data.
+
 ## Codex
 
 The implementation follows OpenAI Codex commit

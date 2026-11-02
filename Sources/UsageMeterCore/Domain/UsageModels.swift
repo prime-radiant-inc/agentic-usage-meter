@@ -330,6 +330,10 @@ public struct UsageSnapshot: Codable, Equatable, Sendable {
   public let balances: [UsageBalance]
   public let bankedResets: BankedResets?
 
+  public var hasReportedUsage: Bool {
+    !windows.isEmpty || !balances.isEmpty
+  }
+
   public init(
     accountID: UUID,
     fetchedAt: Date,

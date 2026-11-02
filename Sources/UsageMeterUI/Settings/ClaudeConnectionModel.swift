@@ -722,10 +722,10 @@ public final class ClaudeConnectionModel {
         }
     }
 
-    // A usage payload the decoder rejects will not improve on refresh,
-    // so it fails qualification instead of saving an account that can
-    // never show data. Transient failures still qualify without a
-    // snapshot.
+    // Malformed usage fails qualification. Explicitly null quota windows
+    // are a valid response and save without inventing quota; the UI marks
+    // an empty snapshot as no usage reported. Transient failures still
+    // qualify without a snapshot.
     static func loadSnapshot(
         usageClient: ClaudeWebUsageClient,
         accountID: UUID,

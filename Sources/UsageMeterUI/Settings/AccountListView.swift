@@ -499,6 +499,8 @@ private struct AccountSettingsRow: View {
             case .unsupportedResponse:
                 Text("Provider response changed")
             }
+        } else if let snapshot = state.snapshot, !snapshot.hasReportedUsage {
+            Text("No usage reported · Checked \(snapshot.fetchedAt.formatted(.relative(presentation: .named)))")
         } else if let fetchedAt = state.snapshot?.fetchedAt {
             Text("Updated \(fetchedAt.formatted(.relative(presentation: .named)))")
         } else {

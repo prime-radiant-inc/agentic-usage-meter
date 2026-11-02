@@ -38,31 +38,27 @@ public struct ClaudeUsageDecoder: Sendable {
             throw ProviderClientError.unsupportedResponse
         }
 
-        guard
-            let shortWindow = normalizedWindow(
-                payload.fiveHour,
-                id: "five-hour",
-                kind: .short,
-                duration: 18_000
-            ),
-            let weeklyWindow = normalizedWindow(
-                payload.sevenDay,
-                id: "seven-day",
-                kind: .weekly,
-                duration: 604_800
-            )
-        else {
-            claudeLogger.error(
-                "Rejected usage response: fiveHourUtilizationValid=\(Self.isValidUtilization(payload.fiveHour.utilization), privacy: .public) sevenDayUtilizationValid=\(Self.isValidUtilization(payload.sevenDay.utilization), privacy: .public)"
-            )
-            throw ProviderClientError.unsupportedResponse
+        var windows: [UsageWindow] = []
+        for (value, id, kind, duration) in [
+            (payload.fiveHour, "five-hour", UsageWindowKind.short, 18_000.0),
+            (payload.sevenDay, "seven-day", UsageWindowKind.weekly, 604_800.0),
+        ] {
+            // Null means this window is not reported, not zero usage.
+            guard let value else { continue }
+            guard let window = normalizedWindow(
+                value, id: id, kind: kind, duration: duration
+            ) else {
+                claudeLogger.error("Rejected usage response: invalid window at \(id, privacy: .public)")
+                throw ProviderClientError.unsupportedResponse
+            }
+            windows.append(window)
         }
         let balances = try normalizedBalances(from: payload)
 
         return UsageSnapshot(
             accountID: accountID,
             fetchedAt: fetchedAt,
-            windows: [shortWindow, weeklyWindow] + scopedWindows(from: payload),
+            windows: windows + scopedWindows(from: payload),
             balances: balances,
             bankedResets: BankedResetDecoder.claude(data, now: fetchedAt),
         )
@@ -333,8 +329,8 @@ public struct ClaudeUsageDecoder: Sendable {
 }
 
 private struct UsagePayload: Decodable {
-    let fiveHour: WindowPayload
-    let sevenDay: WindowPayload
+    let fiveHour: WindowPayload?
+    let sevenDay: WindowPayload?
     let extraUsage: ExtraUsagePayload?
     let spend: SpendPayload?
     let limits: LimitsPayload
@@ -349,12 +345,14 @@ private struct UsagePayload: Decodable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Both keys are required; explicit null means no reported window.
+        // decodeIfPresent would also accept missing keys and hide schema drift.
         fiveHour = try container.decode(
-            WindowPayload.self,
+            Optional<WindowPayload>.self,
             forKey: .fiveHour
         )
         sevenDay = try container.decode(
-            WindowPayload.self,
+            Optional<WindowPayload>.self,
             forKey: .sevenDay
         )
         extraUsage = try container.decodeIfPresent(
