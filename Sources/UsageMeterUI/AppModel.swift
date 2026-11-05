@@ -890,8 +890,12 @@ public final class AppModel {
 
     public func hasCodexAccount(
         providerAccountID: String,
+        userID: String?,
+        email: String?,
         excluding excludedAccountID: UUID? = nil,
     ) async -> Bool {
+        let userID = nonemptyCodexUserID(userID)
+        let email = normalizedCodexEmail(email)
         for account in accounts
             where account.account.provider == .codex
             && account.id != excludedAccountID
@@ -900,14 +904,39 @@ public final class AppModel {
                 let credential = try? await credentialStore.load(
                     for: account.id,
                 ),
-                case let .codex(oauth) = credential
+                case let .codex(oauth) = credential,
+                oauth.accountID == providerAccountID
             else {
                 continue
             }
-            if oauth.accountID == providerAccountID {
+
+            let identity = oauth.idToken.flatMap {
+                try? CodexOAuthIdentity.decode(from: $0)
+            }
+            // The account ID identifies a workspace, which can have
+            // several users. Stable user IDs take precedence over email.
+            if
+                let userID,
+                let existingUserID = nonemptyCodexUserID(identity?.userID)
+            {
+                if existingUserID == userID {
+                    return true
+                }
+                continue
+            }
+
+            // Older credentials may lack an identity token or user ID.
+            // authenticatedIdentity can also contain a plan name, so only
+            // use an email-shaped value as the fallback identity.
+            let existingEmail = normalizedCodexEmail(identity?.email)
+                ?? normalizedCodexEmail(
+                    account.account.authenticatedIdentity,
+                )
+            if let email, existingEmail == email {
                 return true
             }
         }
+        // A shared workspace alone does not prove a duplicate user.
         return false
     }
 
@@ -1252,6 +1281,25 @@ public final class AppModel {
     ) -> Bool {
         accountComesBefore(lhs.account, rhs.account)
     }
+}
+
+private func nonemptyCodexUserID(_ value: String?) -> String? {
+    guard let value else {
+        return nil
+    }
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+}
+
+private func normalizedCodexEmail(_ value: String?) -> String? {
+    guard let value else {
+        return nil
+    }
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed.contains("@") else {
+        return nil
+    }
+    return trimmed.lowercased()
 }
 
 private func refreshFailure(
