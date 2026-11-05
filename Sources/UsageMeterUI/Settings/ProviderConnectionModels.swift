@@ -65,6 +65,8 @@ public final class CodexConnectionModel {
                     ?? result.credential.accountID,
                     await appModel.hasCodexAccount(
                         providerAccountID: providerAccountID,
+                        userID: result.identity.userID,
+                        email: result.identity.email,
                         excluding: reconnectingAccount?.id,
                     )
             {
